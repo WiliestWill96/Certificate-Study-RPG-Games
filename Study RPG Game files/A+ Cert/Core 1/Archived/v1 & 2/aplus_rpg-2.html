@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysAdmin Quest — A+ Core 1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap');
+
+:root {
+  --bg:#0a0a1a; --panel:#10102a; --panel2:#16163a;
+  --border:#2a2a6a; --border2:#3a3a9a;
+  --gold:#ffd700; --gold2:#ffaa00;
+  --hp:#22ee44; --mp:#4488ff; --xp:#ff88ff;
+  --dmg:#ff3344; --heal:#22ee88;
+  --fire:#ff6600; --ice:#88ddff; --shock:#ffff44;
+  --txt:#dde8ff; --dim:#6677aa;
+  --net:#00ccff; --hw:#ff8800; --trbl:#ff3366;
+  --cloud:#bb66ff; --mobile:#44ff88; --acr:#ffdd00;
+  --btn:#1a1a4a; --btn-h:#2a2a6a;
+  --correct:#22ee44; --wrong:#ff3344;
+  --shadow: 0 4px 24px rgba(0,0,100,0.6);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Exo 2',sans-serif;overflow-x:hidden;}
+
+/* ── SCANLINES ── */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,40,0.04) 3px,rgba(0,0,40,0.04) 6px);pointer-events:none;z-index:9999;}
+
+/* ── PIXEL FONT ── */
+.pixel{font-family:'Press Start 2P',monospace;}
+.vt{font-family:'VT323',monospace;}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ════ TITLE SCREEN ════ */
+#s-title{align-items:center;justify-content:center;padding:30px 20px;
+  background:radial-gradient(ellipse at center, #1a0a3a 0%, var(--bg) 70%);}
+.title-logo{font-family:'Press Start 2P',monospace;font-size:clamp(14px,3vw,26px);
+  color:var(--gold);text-shadow:0 0 20px var(--gold),0 0 40px var(--gold2),4px 4px 0 #440000;
+  line-height:1.6;text-align:center;animation:logo-pulse 2s ease-in-out infinite;}
+@keyframes logo-pulse{0%,100%{text-shadow:0 0 20px var(--gold),0 0 40px var(--gold2),4px 4px 0 #440000;}
+  50%{text-shadow:0 0 40px var(--gold),0 0 80px var(--gold2),4px 4px 0 #440000;}}
+.title-sub{font-family:'VT323',monospace;font-size:22px;color:var(--dim);margin-top:6px;letter-spacing:3px;}
+
+.hero-art{font-size:64px;margin:20px 0;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+.lore-box{background:rgba(0,0,50,0.6);border:2px solid var(--border);border-radius:8px;
+  padding:16px 20px;max-width:520px;margin:16px 0;font-family:'VT323',monospace;font-size:18px;
+  color:#aabbd8;line-height:1.6;text-align:center;}
+.lore-box .warn{color:var(--gold);font-size:20px;}
+
+.menu-btns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:320px;margin-top:20px;}
+.mbtn{background:var(--btn);border:2px solid var(--border2);border-radius:6px;
+  padding:14px 20px;cursor:pointer;transition:all 0.15s;
+  font-family:'Press Start 2P',monospace;font-size:10px;color:var(--txt);
+  text-shadow:1px 1px 0 #000;display:flex;align-items:center;gap:12px;}
+.mbtn:hover{background:var(--btn-h);border-color:var(--gold);color:var(--gold);transform:translateX(4px);}
+.mbtn .mi{font-size:20px;}
+.mbtn.primary{border-color:var(--gold);color:var(--gold);}
+.mbtn.primary:hover{background:rgba(255,215,0,0.1);box-shadow:0 0 16px rgba(255,215,0,0.3);}
+
+/* ════ WORLD MAP ════ */
+#s-map{padding:16px;background:radial-gradient(ellipse at 50% 30%, #0a102a 0%, var(--bg) 80%);}
+.map-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.map-title{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--gold);}
+
+.player-hud{display:flex;align-items:center;gap:16px;background:var(--panel);
+  border:2px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap;}
+.phud-name{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--gold);}
+.phud-bars{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px;}
+.bar-row{display:flex;align-items:center;gap:6px;}
+.bar-lbl{font-family:'VT323',monospace;font-size:16px;min-width:28px;}
+.bar-outer{flex:1;height:10px;background:#1a1a3a;border-radius:5px;overflow:hidden;border:1px solid var(--border);}
+.bar-inner{height:100%;border-radius:5px;transition:width 0.4s ease;}
+.bar-hp .bar-inner{background:linear-gradient(90deg,#116622,var(--hp));}
+.bar-xp .bar-inner{background:linear-gradient(90deg,#660066,var(--xp));}
+.bar-num{font-family:'VT323',monospace;font-size:15px;min-width:52px;text-align:right;}
+.phud-stats{display:flex;gap:12px;flex-wrap:wrap;}
+.pstat{text-align:center;}
+.pstat-val{font-family:'Press Start 2P',monospace;font-size:11px;color:var(--gold);}
+.pstat-lbl{font-family:'VT323',monospace;font-size:14px;color:var(--dim);}
+
+.zones-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.zone-card{background:var(--panel);border:2px solid var(--border);border-radius:10px;
+  padding:18px 16px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.zone-card::before{content:'';position:absolute;inset:0;background:var(--zc,#fff);opacity:0;transition:opacity 0.2s;}
+.zone-card:hover:not(.locked){border-color:var(--zc,var(--border2));transform:translateY(-3px);box-shadow:0 6px 24px rgba(0,0,0,0.4);}
+.zone-card:hover:not(.locked)::before{opacity:0.05;}
+.zone-card.locked{opacity:0.45;cursor:not-allowed;}
+.zone-icon{font-size:36px;margin-bottom:8px;}
+.zone-name{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--zc,var(--txt));margin-bottom:6px;}
+.zone-desc{font-family:'VT323',monospace;font-size:16px;color:var(--dim);line-height:1.4;}
+.zone-progress{margin-top:10px;}
+.zp-bar{height:5px;background:#1a1a3a;border-radius:3px;overflow:hidden;margin-top:4px;}
+.zp-fill{height:100%;border-radius:3px;background:var(--zc,var(--gold));}
+.zone-badge{position:absolute;top:8px;right:8px;font-family:'Press Start 2P',monospace;font-size:7px;
+  padding:3px 6px;border-radius:4px;}
+.zone-badge.hot{background:rgba(255,50,50,0.2);border:1px solid var(--dmg);color:var(--dmg);}
+.zone-badge.done{background:rgba(34,238,68,0.2);border:1px solid var(--correct);color:var(--correct);}
+.zone-badge.locked-b{background:rgba(100,100,100,0.2);border:1px solid #555;color:#888;}
+
+/* ════ BATTLE SCREEN ════ */
+#s-battle{padding:12px;max-width:700px;margin:0 auto;width:100%;}
+#s-battle.active{display:block;}
+
+.battle-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.battle-zone-tag{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--zc,var(--gold));
+  border:1px solid var(--zc,var(--gold));border-radius:4px;padding:4px 8px;}
+.battle-progress{font-family:'VT323',monospace;font-size:18px;color:var(--dim);}
+
+/* Combatants */
+.combatants{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:end;margin-bottom:12px;}
+.combatant{background:var(--panel);border:2px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.c-name{font-family:'Press Start 2P',monospace;font-size:8px;margin-bottom:8px;}
+.c-art{font-size:48px;margin:6px 0;display:block;line-height:1;}
+.c-hpbar{height:12px;background:#1a1a1a;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-top:6px;}
+.c-hpfill{height:100%;border-radius:6px;transition:width 0.4s ease;background:linear-gradient(90deg,#116622,var(--hp));}
+.c-hpfill.low{background:linear-gradient(90deg,#880000,var(--dmg));}
+.c-hpnum{font-family:'VT323',monospace;font-size:15px;color:var(--txt);margin-top:3px;}
+.enemy-card{border-color:var(--dmg);}
+.enemy-card .c-name{color:var(--dmg);}
+.player-card .c-name{color:var(--correct);}
+.vs-text{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--gold);
+  text-shadow:2px 2px 0 #440000;align-self:center;}
+
+/* Battle log */
+#battle-log{background:#08080f;border:1px solid var(--border);border-radius:6px;
+  padding:10px 14px;margin-bottom:12px;height:52px;overflow:hidden;
+  font-family:'VT323',monospace;font-size:18px;color:#aabbdd;line-height:1.4;
+  position:relative;}
+#battle-log::after{content:'';position:absolute;top:0;left:0;right:0;height:20px;
+  background:linear-gradient(#08080f,transparent);}
+
+/* Timer */
+#b-timer-wrap{height:5px;background:var(--border);border-radius:3px;margin-bottom:12px;overflow:hidden;}
+#b-timer-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--correct),var(--gold));
+  transition:width linear,background 0.3s;}
+#b-timer-bar.hurry{background:linear-gradient(90deg,var(--dmg),#ff8800);}
+
+/* Question */
+#b-qcard{background:var(--panel2);border:2px solid var(--border);border-radius:10px;
+  padding:18px;margin-bottom:12px;animation:qslide 0.3s ease;}
+@keyframes qslide{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.b-qtag{font-family:'VT323',monospace;font-size:15px;color:var(--gold);margin-bottom:6px;}
+#b-qtext{font-size:15px;line-height:1.6;color:#eef3ff;font-weight:400;}
+
+/* Choices */
+#b-choices{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.b-choice{background:rgba(26,26,60,0.5);border:2px solid var(--border);border-radius:8px;
+  padding:12px 16px;cursor:pointer;transition:all 0.15s;text-align:left;
+  font-family:'Exo 2',sans-serif;font-size:14px;color:var(--txt);
+  display:flex;align-items:flex-start;gap:10px;}
+.b-choice:hover:not(:disabled){background:rgba(0,100,200,0.15);border-color:var(--mp);transform:translateX(3px);}
+.b-choice:disabled{cursor:default;}
+.b-choice.hit{background:rgba(34,238,68,0.12);border-color:var(--correct);color:var(--correct);
+  animation:hit-flash 0.4s ease;}
+.b-choice.miss{background:rgba(255,50,50,0.12);border-color:var(--wrong);color:var(--wrong);}
+.b-choice.reveal{background:rgba(34,238,68,0.08);border-color:rgba(34,238,68,0.4);}
+@keyframes hit-flash{0%,100%{transform:translateX(0);}25%{transform:translateX(6px);}75%{transform:translateX(-2px);}}
+.b-cletter{font-family:'Press Start 2P',monospace;font-size:8px;min-width:20px;height:20px;
+  border-radius:3px;background:var(--border);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;}
+
+/* Explanation */
+#b-explain{background:rgba(0,50,100,0.3);border:1px solid rgba(0,150,255,0.3);
+  border-radius:8px;padding:14px;margin-bottom:10px;display:none;animation:qslide 0.3s ease;}
+#b-explain.show{display:block;}
+.b-exp-label{font-family:'Press Start 2P',monospace;font-size:8px;margin-bottom:6px;}
+.b-exp-text{font-family:'VT323',monospace;font-size:18px;color:#bbccee;line-height:1.5;}
+
+#b-next{display:none;width:100%;background:var(--btn);border:2px solid var(--gold);
+  border-radius:8px;padding:14px;font-family:'Press Start 2P',monospace;font-size:9px;
+  color:var(--gold);cursor:pointer;transition:all 0.2s;margin-top:4px;}
+#b-next.show{display:block;animation:qslide 0.3s ease;}
+#b-next:hover{background:rgba(255,215,0,0.1);transform:translateY(-2px);}
+
+/* Item bar */
+.item-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.item-btn{background:var(--panel);border:2px solid var(--border);border-radius:6px;
+  padding:6px 10px;cursor:pointer;transition:all 0.15s;font-family:'VT323',monospace;font-size:17px;
+  display:flex;align-items:center;gap:4px;color:var(--txt);}
+.item-btn:hover:not(:disabled){border-color:var(--gold);transform:translateY(-2px);}
+.item-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.item-count{font-size:13px;color:var(--gold);}
+
+/* ════ SHOP ════ */
+#s-shop{padding:20px;max-width:600px;margin:0 auto;width:100%;}
+#s-shop.active{display:block;}
+.shop-title{font-family:'Press Start 2P',monospace;font-size:13px;color:var(--gold);
+  text-align:center;margin-bottom:4px;}
+.shop-gold{font-family:'VT323',monospace;font-size:24px;color:var(--gold);text-align:center;margin-bottom:20px;}
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;}
+.shop-item{background:var(--panel);border:2px solid var(--border);border-radius:10px;
+  padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.shop-item:hover:not(.cant-afford){border-color:var(--gold);transform:translateY(-3px);}
+.shop-item.cant-afford{opacity:0.45;cursor:not-allowed;}
+.si-icon{font-size:36px;margin-bottom:8px;}
+.si-name{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--txt);margin-bottom:6px;}
+.si-desc{font-family:'VT323',monospace;font-size:16px;color:var(--dim);margin-bottom:10px;line-height:1.4;}
+.si-cost{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--gold);}
+.shop-btns{display:flex;gap:10px;justify-content:center;margin-top:20px;}
+
+/* ════ VICTORY / GAMEOVER ════ */
+#s-victory,#s-gameover{align-items:center;justify-content:center;padding:40px 20px;text-align:center;}
+.vo-art{font-size:80px;animation:float 2s ease-in-out infinite;margin-bottom:16px;}
+.vo-title{font-family:'Press Start 2P',monospace;font-size:clamp(16px,4vw,28px);
+  color:var(--gold);text-shadow:3px 3px 0 #440000;margin-bottom:8px;}
+.vo-sub{font-family:'VT323',monospace;font-size:22px;color:var(--dim);margin-bottom:24px;}
+.vo-stats{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;}
+.vo-stat{background:var(--panel);border:2px solid var(--border);border-radius:8px;padding:14px 20px;}
+.vo-sv{font-family:'Press Start 2P',monospace;font-size:16px;color:var(--gold);}
+.vo-sl{font-family:'VT323',monospace;font-size:16px;color:var(--dim);margin-top:4px;}
+.go-art{font-size:80px;margin-bottom:16px;animation:shake 0.5s ease-in-out 3;}
+@keyframes shake{0%,100%{transform:rotate(0);}25%{transform:rotate(-10deg);}75%{transform:rotate(10deg);}}
+#s-gameover .vo-title{color:var(--dmg);text-shadow:3px 3px 0 #440000;}
+
+/* ════ FLOATING DAMAGE TEXT ════ */
+.dmg-float{position:fixed;pointer-events:none;font-family:'Press Start 2P',monospace;
+  font-size:16px;z-index:8888;animation:dmg-up 1.2s ease-out forwards;}
+@keyframes dmg-up{0%{opacity:1;transform:translateY(0) scale(1);}
+  100%{opacity:0;transform:translateY(-70px) scale(1.4);}}
+.dmg-float.good{color:var(--correct);text-shadow:0 0 8px var(--correct);}
+.dmg-float.bad{color:var(--dmg);text-shadow:0 0 8px var(--dmg);}
+.dmg-float.crit{color:var(--gold);text-shadow:0 0 12px var(--gold);font-size:22px;}
+
+/* ════ GLOBAL BUTTONS ════ */
+.gbtn{background:var(--btn);border:2px solid var(--border2);border-radius:6px;
+  padding:12px 24px;cursor:pointer;font-family:'Press Start 2P',monospace;font-size:9px;
+  color:var(--txt);transition:all 0.15s;}
+.gbtn:hover{background:var(--btn-h);border-color:var(--gold);color:var(--gold);}
+.gbtn.gold{border-color:var(--gold);color:var(--gold);}
+.gbtn.gold:hover{background:rgba(255,215,0,0.1);}
+
+/* ════ SCREEN SHAKE ════ */
+@keyframes screen-shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-6px);}40%{transform:translateX(6px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
+.shake{animation:screen-shake 0.4s ease !important;}
+
+/* ════ RESPONSIVE ════ */
+@media(max-width:520px){
+  .combatants{grid-template-columns:1fr 32px 1fr;}
+  .c-art{font-size:36px;}
+  .vs-text{font-size:10px;}
+  #b-qtext{font-size:13px;}
+  .b-choice{font-size:12px;padding:10px 12px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ════ TITLE ════ -->
+<div id="s-title" class="screen active">
+  <div class="title-logo">SYSADMIN<br>QUEST</div>
+  <div class="title-sub">CompTIA A+ Core 1 · 220-1201</div>
+  <div class="hero-art">🧙‍♂️</div>
+  <div class="lore-box">
+    The MALWARE KING has infected the network.<br>
+    Six zones. Six bosses. One sysadmin.<br><br>
+    <span class="warn">⚠ Intel: Last battle — 652/900. Failed by 23pts.<br>Enemy was heavy on NETWORKING &amp; HARDWARE.</span>
+  </div>
+  <div class="menu-btns">
+    <button class="mbtn primary" onclick="startGame()"><span class="mi">⚔️</span> NEW GAME</button>
+    <button class="mbtn" id="continue-btn" onclick="continueGame()" style="display:none;border-color:var(--glow2);color:var(--glow2)"><span class="mi">💾</span> CONTINUE</button>
+    <button class="mbtn" onclick="goMap()"><span class="mi">🗺️</span> WORLD MAP</button>
+    <button class="mbtn" onclick="showScreen('s-shop-free')"><span class="mi">🏪</span> ITEM SHOP</button>
+  </div>
+  <div id="save-info" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--dim);margin-top:10px;display:none;"></div>
+</div>
+
+<!-- ════ WORLD MAP ════ -->
+<div id="s-map" class="screen">
+  <div class="map-header">
+    <div class="map-title">🗺 WORLD MAP</div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="gbtn" style="font-size:7px;padding:6px 10px;border-color:var(--glow2);color:var(--glow2);" onclick="manualSave()">💾 SAVE</button>
+      <button class="gbtn" onclick="showScreen('s-title')">◀ MENU</button>
+    </div>
+  </div>
+  <div id="map-save-msg" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--glow2);text-align:right;margin-bottom:6px;height:14px;"></div>
+
+  <div class="player-hud">
+    <div>
+      <div class="phud-name">🧙‍♂️ SYSADMIN LV.<span id="p-level">1</span></div>
+      <div style="font-family:'VT323',monospace;font-size:15px;color:var(--gold);margin-top:2px;">💰 <span id="p-gold-map">0</span> GOLD</div>
+    </div>
+    <div class="phud-bars">
+      <div class="bar-row">
+        <span class="bar-lbl" style="color:var(--hp)">HP</span>
+        <div class="bar-outer bar-hp"><div class="bar-inner" id="map-hp-bar" style="width:100%"></div></div>
+        <span class="bar-num" id="map-hp-num">30/30</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-lbl" style="color:var(--xp)">XP</span>
+        <div class="bar-outer bar-xp"><div class="bar-inner" id="map-xp-bar" style="width:0%"></div></div>
+        <span class="bar-num" id="map-xp-num">0/100</span>
+      </div>
+    </div>
+    <div class="phud-stats">
+      <div class="pstat"><div class="pstat-val" id="stat-atk">⚔️8</div><div class="pstat-lbl">ATK</div></div>
+      <div class="pstat"><div class="pstat-val" id="stat-streak">🔥0</div><div class="pstat-lbl">STREAK</div></div>
+      <div class="pstat"><div class="pstat-val" id="stat-battles">🏆0</div><div class="pstat-lbl">WON</div></div>
+    </div>
+  </div>
+
+  <div class="zones-grid" id="zones-grid"></div>
+</div>
+
+<!-- ════ BATTLE ════ -->
+<div id="s-battle" class="screen">
+  <div class="battle-top">
+    <span class="battle-zone-tag" id="b-zone-tag">ZONE</span>
+    <span class="battle-progress" id="b-progress">Battle 1/3</span>
+    <button class="gbtn" style="font-size:8px;padding:6px 10px;" onclick="retreatToMap()">🏳 RETREAT</button>
+  </div>
+
+  <!-- Combatants -->
+  <div class="combatants">
+    <div class="combatant player-card" id="player-card">
+      <div class="c-name">🧙‍♂️ SYSADMIN</div>
+      <span class="c-art" id="p-art">🧙‍♂️</span>
+      <div class="c-hpbar"><div class="c-hpfill" id="p-hpbar" style="width:100%"></div></div>
+      <div class="c-hpnum" id="p-hpnum">30/30</div>
+    </div>
+    <div class="vs-text">VS</div>
+    <div class="combatant enemy-card" id="enemy-card">
+      <div class="c-name" id="e-name">ENEMY</div>
+      <span class="c-art" id="e-art">👾</span>
+      <div class="c-hpbar"><div class="c-hpfill" id="e-hpbar" style="width:100%"></div></div>
+      <div class="c-hpnum" id="e-hpnum">20/20</div>
+    </div>
+  </div>
+
+  <!-- Battle log -->
+  <div id="battle-log">⚡ Battle begins!</div>
+
+  <!-- Items -->
+  <div class="item-bar" id="item-bar"></div>
+
+  <!-- Timer -->
+  <div id="b-timer-wrap"><div id="b-timer-bar"></div></div>
+
+  <!-- Question -->
+  <div id="b-qcard">
+    <div class="b-qtag" id="b-qtag">▸ QUESTION</div>
+    <div id="b-qtext">Loading...</div>
+  </div>
+  <div id="b-choices"></div>
+
+  <!-- Explanation -->
+  <div id="b-explain">
+    <div class="b-exp-label" id="b-exp-label">RESULT</div>
+    <div class="b-exp-text" id="b-exp-text"></div>
+  </div>
+
+  <button id="b-next">▶ CONTINUE</button>
+</div>
+
+<!-- ════ SHOP (between battles) ════ -->
+<div id="s-shop" class="screen">
+  <div id="s-shop-inner" style="max-width:600px;margin:0 auto;padding:20px;width:100%;">
+    <div class="shop-title">🏪 ITEM SHOP</div>
+    <div class="shop-gold">💰 Gold: <span id="shop-gold">0</span></div>
+    <div class="shop-grid" id="shop-grid"></div>
+    <div class="shop-btns">
+      <button class="gbtn gold" id="shop-continue-btn">⚔️ CONTINUE TO BATTLE</button>
+      <button class="gbtn" onclick="goMap()">🗺 MAP</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ FREE SHOP (from menu) ════ -->
+<div id="s-shop-free" class="screen">
+  <div style="max-width:600px;margin:0 auto;padding:20px;width:100%;">
+    <div class="shop-title">🏪 ITEM SHOP</div>
+    <div class="shop-gold">💰 Gold: <span id="shop-free-gold">0</span></div>
+    <div class="shop-grid" id="shop-free-grid"></div>
+    <div class="shop-btns">
+      <button class="gbtn" onclick="goMap()">◀ BACK TO MAP</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ VICTORY ════ -->
+<div id="s-victory" class="screen">
+  <div class="vo-art">🏆</div>
+  <div class="vo-title">ZONE CLEARED!</div>
+  <div class="vo-sub" id="v-sub">Area 1 complete!</div>
+  <div class="vo-stats">
+    <div class="vo-stat"><div class="vo-sv" id="v-correct">0</div><div class="vo-sl">CORRECT</div></div>
+    <div class="vo-stat"><div class="vo-sv" id="v-gold">+0💰</div><div class="vo-sl">GOLD EARNED</div></div>
+    <div class="vo-stat"><div class="vo-sv" id="v-xp">+0XP</div><div class="vo-sl">XP EARNED</div></div>
+  </div>
+  <div style="font-family:'VT323',monospace;font-size:18px;color:var(--dim);margin-bottom:20px;max-width:400px;text-align:center;" id="v-tip"></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <button class="gbtn gold" onclick="openShop()">🏪 VISIT SHOP</button>
+    <button class="gbtn" onclick="goMap()">🗺 WORLD MAP</button>
+  </div>
+</div>
+
+<!-- ════ GAME OVER ════ -->
+<div id="s-gameover" class="screen">
+  <div class="go-art">💀</div>
+  <div class="vo-title">GAME OVER</div>
+  <div class="vo-sub" id="go-sub">You were defeated...</div>
+  <div class="vo-stats">
+    <div class="vo-stat"><div class="vo-sv" id="go-correct" style="color:var(--correct)">0</div><div class="vo-sl">CORRECT</div></div>
+    <div class="vo-stat"><div class="vo-sv" id="go-total">0</div><div class="vo-sl">TOTAL</div></div>
+  </div>
+  <div style="font-family:'VT323',monospace;font-size:18px;color:var(--dim);max-width:380px;margin-bottom:20px;text-align:center;" id="go-tip"></div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+    <button class="gbtn gold" id="go-retry-btn">🔄 RETRY ZONE</button>
+    <button class="gbtn" onclick="goMap()">🗺 MAP</button>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+// QUESTION BANK — All flashcard content, 4-choice, correct answer always index 0 in c[]
+// Shuffle happens at render time; we track correctness via data attribute
+// ════════════════════════════════════════════════════════════
+const QB = {
+net:[
+  // Ports
+  {q:"What port does SSH use?",c:["TCP 22","TCP 23","TCP 21","TCP 3389"],e:"TCP 22 — Secure Shell. Encrypted remote CLI. Always prefer over Telnet (port 23).",tier:1},
+  {q:"What port does Telnet use?",c:["TCP 23","TCP 22","TCP 80","TCP 443"],e:"TCP 23 — unencrypted remote CLI. Avoid it; use SSH instead.",tier:1},
+  {q:"What port does FTP data transfer use?",c:["TCP 20","TCP 21","TCP 22","TCP 25"],e:"Port 20 carries data; Port 21 carries commands/control. Easy to mix up!",tier:1},
+  {q:"What port does FTP control/commands use?",c:["TCP 21","TCP 20","TCP 22","TCP 23"],e:"Port 21 = control (commands). Port 20 = data transfer.",tier:1},
+  {q:"What port does SMTP use?",c:["TCP 25","TCP 110","TCP 143","TCP 993"],e:"TCP 25 — Simple Mail Transfer Protocol. Sends mail between servers.",tier:1},
+  {q:"What port does DNS use?",c:["UDP 53","TCP 80","UDP 67","TCP 389"],e:"UDP 53 — fast lookups. DNS also uses TCP 53 for zone transfers.",tier:1},
+  {q:"What port does DHCP server use?",c:["UDP 67","UDP 68","TCP 67","UDP 53"],e:"UDP 67 (server), UDP 68 (client). Remember: server = higher number here.",tier:1},
+  {q:"What port does HTTP use?",c:["TCP 80","TCP 443","TCP 8080","UDP 80"],e:"TCP 80 — unencrypted web. HTTPS uses TCP 443 (encrypted).",tier:1},
+  {q:"What port does POP3 use?",c:["TCP 110","TCP 143","TCP 993","TCP 25"],e:"TCP 110 — downloads mail to device, usually deletes from server. IMAP = TCP 143 (stays on server).",tier:1},
+  {q:"What port does IMAP use?",c:["TCP 143","TCP 110","TCP 993","TCP 25"],e:"TCP 143 — manages mail on server, syncs across devices. Better than POP3 for multi-device.",tier:1},
+  {q:"What port does LDAP use?",c:["TCP 389","TCP 636","TCP 443","UDP 389"],e:"TCP 389 — Lightweight Directory Access Protocol. LDAPS (secure) uses TCP 636.",tier:1},
+  {q:"What port does HTTPS use?",c:["TCP 443","TCP 80","TCP 8443","UDP 443"],e:"TCP 443 — encrypted HTTPS. Look for the padlock icon in browsers.",tier:1},
+  {q:"What port does SMB use?",c:["TCP 445","TCP 139","UDP 137","TCP 389"],e:"TCP 445 — Server Message Block. Windows file sharing and printer access.",tier:1},
+  {q:"What port does RDP use?",c:["TCP 3389","TCP 22","TCP 3390","UDP 3389"],e:"TCP 3389 — Remote Desktop Protocol. Remotely view/control Windows computers.",tier:1},
+  {q:"NetBIOS name services use which port?",c:["UDP 137","TCP 139","TCP 445","UDP 138"],e:"UDP 137 = name services. TCP 139 = session services. Legacy Windows networking.",tier:2},
+  // Concepts
+  {q:"TCP vs UDP: which is connection-oriented and reliable?",c:["TCP","UDP","Both","Neither"],e:"TCP uses 3-way handshake + ACKs for reliability. UDP is faster but connectionless — no guarantees. TCP for accuracy, UDP for speed.",tier:1},
+  {q:"Which protocol uses UDP for fast lookups but TCP for zone transfers?",c:["DNS","HTTP","SMTP","FTP"],e:"DNS uses UDP 53 for regular queries (fast). Zone transfers between DNS servers use TCP 53 (reliable).",tier:2},
+  {q:"What IP address range does APIPA assign?",c:["169.254.0.0/16","192.168.0.0/16","172.16.0.0/12","10.0.0.0/8"],e:"APIPA = 169.254.x.x. Windows self-assigns when DHCP fails. Local only, no internet.",tier:1},
+  {q:"A PC gets 169.254.43.12. What is the most likely problem?",c:["DHCP server unreachable","Wrong gateway","DNS failure","Duplicate IP"],e:"169.254.x.x = APIPA = DHCP failed. Check: cable connected? DHCP server running? Try ipconfig /release then /renew.",tier:2},
+  {q:"What is the DORA process in DHCP?",c:["Discover, Offer, Request, Acknowledge","Deploy, Offer, Route, Assign","Detect, Open, Register, Allocate","Discover, Open, Request, Assign"],e:"Client Discovers → Server Offers IP → Client Requests it → Server Acknowledges. DORA = how your device gets an IP.",tier:1},
+  {q:"What are DHCP Reservations?",c:["MAC address bound to a fixed IP","IPs excluded from the pool","Temporary IP leases","VLANs assigned to DHCP pools"],e:"Reservations bind a specific MAC address to always get the same IP from DHCP. Used for printers, servers, cameras.",tier:2},
+  {q:"What is a VLAN?",c:["Logical network segment on a switch","A type of VPN","A wireless network","A subnet range"],e:"VLANs logically segment a physical switch into separate broadcast domains. Devices in different VLANs need a router to talk.",tier:1},
+  {q:"What device is required for traffic between two VLANs?",c:["Router or Layer 3 switch","Another switch","An access point","A hub"],e:"VLANs are Layer 2 — inter-VLAN traffic must go through a router (or Layer 3 switch). A regular switch can't route between VLANs.",tier:2},
+  {q:"What is a VPN used for?",c:["Encrypted tunnel over public network","Faster internet connection","Local network segmentation","Wireless security protocol"],e:"VPN creates an encrypted tunnel. Client-to-site: remote user connects to company. Site-to-site: joins two office networks.",tier:1},
+  {q:"Non-overlapping 2.4 GHz Wi-Fi channels in North America?",c:["1, 6, and 11","1, 4, and 7","2, 6, and 10","1, 5, and 9"],e:"Only channels 1, 6, 11 don't overlap in 2.4 GHz. Always use one of these to avoid interference.",tier:1},
+  {q:"Wi-Fi 6 corresponds to which 802.11 standard?",c:["802.11ax","802.11ac","802.11n","802.11be"],e:"Wi-Fi 5=802.11ac, Wi-Fi 6/6E=802.11ax, Wi-Fi 7=802.11be. Wi-Fi 6 introduced OFDMA for dense environments.",tier:1},
+  {q:"What PoE standard delivers approximately 30W per port?",c:["802.3at (PoE+)","802.3af (PoE)","802.3bt (PoE++)","802.3ab"],e:"802.3af=~15W (phones), 802.3at=~30W (PTZ cameras, APs), 802.3bt=60-100W (high-power). Higher standards backward compatible.",tier:2},
+  {q:"What DNS record type maps a hostname to an IPv4 address?",c:["A record","AAAA record","CNAME record","MX record"],e:"A record = IPv4 address. AAAA record = IPv6 address. CNAME = alias. MX = mail server.",tier:1},
+  {q:"What DNS record type maps a hostname to an IPv6 address?",c:["AAAA record","A record","MX record","TXT record"],e:"AAAA (quad-A) = IPv6. A record = IPv4. Remember: IPv6 is 4x longer than IPv4, hence 4x the A.",tier:1},
+  {q:"What are SPF, DKIM, and DMARC used for?",c:["Email authentication via DNS TXT records","Encrypting email content","Routing email between servers","Spam scoring"],e:"SPF lists authorized mail servers. DKIM adds digital signature. DMARC sets policy when checks fail. All published as DNS TXT records.",tier:2},
+  {q:"What is a MAC address?",c:["Unique hardware ID burned into every NIC","IP address assigned by DHCP","Wireless network name","Network subnet mask"],e:"Media Access Control — 48-bit hardware identifier. Switches use MACs to deliver frames. First 3 bytes = manufacturer OUI.",tier:1},
+  {q:"Private IPv4 range 10.0.0.0 has which subnet mask?",c:["/8 (255.0.0.0)","/16 (255.255.0.0)","/12 (255.240.0.0)","/24 (255.255.255.0)"],e:"RFC 1918 private ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16. None are routed on the public internet.",tier:2},
+  {q:"What is port flapping?",c:["Network port repeatedly cycling up/down","A firewall blocking ports","VLAN misconfiguration","DNS lookup failure"],e:"Port flapping = link LED blinking on/off constantly. Usually a bad cable or NIC. Try a new cable and different switch port.",tier:2},
+  {q:"What causes choppy VoIP audio when packet loss is minimal?",c:["Jitter (uneven packet timing)","Low bandwidth","Wrong codec","DNS failure"],e:"Jitter = variation in packet delay. Even without drops, uneven arrival creates choppy audio. Fix with QoS and jitter buffers.",tier:2},
+  {q:"What internet connection type is fastest and uses light over glass strands?",c:["Fiber","Cable (DOCSIS)","DSL","Satellite"],e:"Fiber uses light pulses — fastest and most reliable. Cable uses coax (DOCSIS). DSL uses phone lines (speed drops with distance). Satellite = highest latency.",tier:1},
+  {q:"What does a managed switch support that unmanaged does not?",c:["VLANs, QoS, Spanning Tree, port mirroring","PoE","Faster throughput","More ports"],e:"Managed switches are fully configurable. Unmanaged = plug and play only. Spanning Tree prevents layer 2 loops.",tier:2},
+  {q:"What is the PLLDDR troubleshooting order for network issues?",c:["Loopback → Local IP → Gateway → DNS → Remote","DNS → Gateway → Local IP → Loopback → Remote","Remote → DNS → Gateway → Local → Loopback","Gateway → Loopback → DNS → Local → Remote"],e:"Ping 127.0.0.1 (loopback) → your IP → default gateway → DNS server → remote IP (8.8.8.8). Where it fails = where problem is.",tier:2},
+  {q:"What connection type assigns 169.254.x.x when DHCP fails?",c:["APIPA","Static IP","BOOTP","PPPoE"],e:"APIPA (Automatic Private IP Addressing) — Windows assigns this automatically when DHCP is unreachable.",tier:1},
+  {q:"What does MAN stand for in networking?",c:["Metropolitan Area Network","Managed Access Node","Multi-Area Network","Mobile Access Network"],e:"MAN = city-wide network. Larger than LAN (building), smaller than WAN (global). PAN = personal (Bluetooth). SAN = storage.",tier:1},
+  {q:"What tool traces a cable path through walls to identify which port it connects to?",c:["Toner probe","Cable tester","Loopback plug","Wi-Fi analyzer"],e:"Toner probe = tone generator on one end, probe on the other. Follow the tone to trace cables. Loopback plug tests port functionality.",tier:2},
+  {q:"What is a SAN?",c:["Storage Area Network — dedicated high-speed storage network","Security Access Node","Static Address Network","Shared Application Network"],e:"SAN = dedicated network just for storage. Uses fiber channel or iSCSI. Much faster than regular network storage. Common in data centers.",tier:2},
+],
+hw:[
+  // Display
+  {q:"Which LCD panel type has the best color accuracy and widest viewing angles?",c:["IPS","TN","VA","OLED"],e:"IPS (In-Plane Switching) = best color and viewing angles. TN = fastest response (gaming). VA = best contrast ratio (middle ground).",tier:1},
+  {q:"Which LCD type has the fastest response time, ideal for gaming?",c:["TN","IPS","VA","OLED"],e:"TN (Twisted Nematic) = fastest response time and cheapest. Tradeoff: poor viewing angles and color accuracy.",tier:1},
+  {q:"What display technology has self-lit pixels and produces perfect true blacks?",c:["OLED","Mini-LED","IPS LCD","Plasma"],e:"OLED pixels emit their own light — when off, they're truly black (no backlight). Perfect contrast. Used in high-end phones and TVs.",tier:1},
+  {q:"A laptop screen is very dim but you can faintly see the image. What failed?",c:["Inverter or backlight","GPU","LCD panel","Display cable"],e:"Visible image but no brightness = backlight/inverter failure. Inverter converts DC to AC for old CCFL backlights. LED screens don't use inverters.",tier:2},
+  {q:"What prevents OLED display burn-in?",c:["Pixel shift and screensavers","Higher brightness","Lower refresh rate","Screen protector"],e:"OLED burn-in = static images permanently damaging pixels. Enable pixel shift (moves image slightly), use screensavers, avoid static content long-term.",tier:2},
+  {q:"What does the CABLES mnemonic help troubleshoot?",c:["Display/monitor issues","Cable crimping","BIOS settings","Battery problems"],e:"Cables/connections → Audio/input → Brightness/burn-in → Locate problem → Everything else (drivers) → Sizing/shutdowns.",tier:2},
+  // RAM
+  {q:"What RAM form factor is used in laptops?",c:["SO-DIMM","DIMM","SIMM","RIMM"],e:"SO-DIMM (Small Outline DIMM) — about half the size of desktop DIMM. Same function, different physical size.",tier:1},
+  {q:"Can DDR4 RAM be installed in a DDR3 slot?",c:["No — physically incompatible","Yes with a BIOS update","Yes at reduced speed","Yes if same speed rating"],e:"DDR generations are NOT backward compatible. Each has a different notch position preventing physical insertion. Always match the motherboard spec.",tier:1},
+  {q:"What is ECC RAM used for?",c:["Detects and corrects single-bit memory errors in servers","Makes RAM run faster","Reduces power consumption","Enables dual-channel mode"],e:"ECC (Error-Correcting Code) — detects AND corrects single-bit errors. Critical in servers where data corruption is unacceptable.",tier:2},
+  {q:"What is dual-channel RAM?",c:["Two matched sticks in correct slots to double bandwidth","Any two RAM sticks installed","RAM running at double speed","ECC mode for two sticks"],e:"Matched pair of sticks in color-coded slots doubles memory bandwidth. Check motherboard manual for correct slot placement.",tier:2},
+  // Storage
+  {q:"Which SSD interface connects directly to the PCIe bus for maximum speed?",c:["NVMe","SATA III","SAS","mSATA"],e:"NVMe (Non-Volatile Memory Express) bypasses SATA controller, communicates directly over PCIe. Much faster than SATA SSDs.",tier:1},
+  {q:"What does S.M.A.R.T. do?",c:["Monitors drive health and predicts failure","Speeds up SSD performance","Tests RAM integrity","Monitors CPU temperature"],e:"Self-Monitoring, Analysis and Reporting Technology. Built into HDDs/SSDs. Predicts failure so you can back up before it happens.",tier:1},
+  {q:"A hard drive makes a repetitive clicking sound. What should you do first?",c:["Back up data immediately","Run CHKDSK","Defragment the drive","Reformat it"],e:"Clicking = 'click of death' = physical head failure. Back up NOW before it dies completely. Never defrag a failing drive.",tier:1},
+  {q:"RAID 0 stripes data across drives. What is its key weakness?",c:["No redundancy — any drive failure loses all data","Slower performance","Cannot exceed 2 drives","Requires identical drives"],e:"RAID 0 = speed only. Zero fault tolerance. Any single drive fails = complete data loss. Only use when speed > data safety.",tier:1},
+  {q:"What RAID level uses striping with parity and survives ONE drive failure?",c:["RAID 5","RAID 0","RAID 1","RAID 10"],e:"RAID 5 = striping + distributed parity. Min 3 drives. Survives 1 failure. RAID 6 = survives 2 failures. RAID 1 = mirror.",tier:1},
+  {q:"RAID 1 mirrors data. What is its advantage over RAID 0?",c:["Full redundancy — drive failure doesn't lose data","Faster read/write speeds","Uses less disk space","Lower cost per GB"],e:"RAID 1 = mirroring. Every write goes to both drives. If one fails, data is intact on the other. 50% storage efficiency.",tier:1},
+  {q:"RAID 10 combines which two RAID levels?",c:["RAID 1 + RAID 0 (mirror + stripe)","RAID 5 + RAID 0","RAID 6 + RAID 1","RAID 0 + RAID 6"],e:"RAID 10 = mirror pairs, then stripe across them. Min 4 drives. Performance + redundancy. Can survive one failure per mirror pair.",tier:2},
+  {q:"Before replacing a failed drive in a RAID array, what must you do first?",c:["Identify the exact failed drive via RAID controller","Replace all old-looking drives","Rebuild from scratch","Power off the server"],e:"Replacing the WRONG drive in RAID can destroy the array. Always use the RAID controller's utility to identify the exact failed drive.",tier:2},
+  {q:"Is RAID a substitute for backups?",c:["No — RAID only protects against drive failure","Yes, RAID 5 and 6 replace backups","Yes, RAID 1 is a backup","Only RAID 10 replaces backups"],e:"RAID ≠ backup! RAID doesn't protect against: accidental deletion, ransomware, fire, theft, or controller failure. Always have a separate backup.",tier:1},
+  // Motherboard / CPU
+  {q:"What form factor is full-size desktop motherboard?",c:["ATX","MicroATX","Mini-ITX","BTX"],e:"ATX = full size, most expansion slots. MicroATX = smaller. Mini-ITX = smallest (compact builds). Form factor must match the case.",tier:1},
+  {q:"What is the main power connector from PSU to motherboard?",c:["20+4 pin ATX connector","8-pin EPS","6-pin PCIe","4-pin Molex"],e:"20+4 pin ATX connector powers the motherboard. The +4 can detach for older 20-pin boards. Also need 8-pin EPS for CPU power.",tier:1},
+  {q:"What does a TPM chip do?",c:["Stores cryptographic keys for disk encryption","Controls fan speeds","Manages USB permissions","Handles network authentication"],e:"TPM = Trusted Platform Module. Securely stores encryption keys. Required for Windows BitLocker. Enable in BIOS/UEFI first.",tier:1},
+  {q:"Capacitors on a motherboard should have what shape on top?",c:["Flat tops","Slightly domed tops","Pointed tops","Concave tops"],e:"Capacitor tops must be FLAT. Bulging or domed = failed capacitor. Can cause crashes, instability, or no POST. Often requires board replacement.",tier:2},
+  {q:"What is the purpose of thermal paste between CPU and heat sink?",c:["Fills microscopic gaps to improve heat transfer","Bonds heat sink to CPU permanently","Prevents static discharge","Provides electrical insulation"],e:"CPU and heat sink surfaces aren't perfectly smooth. Thermal paste fills air gaps (air is a terrible conductor) for efficient heat transfer.",tier:1},
+  {q:"What does Secure Boot do in UEFI?",c:["Prevents unauthorized OS/malware from loading at startup","Speeds up boot time","Encrypts the hard drive","Sets boot order"],e:"Secure Boot verifies the bootloader has a trusted signature before loading. Prevents rootkits and bootkits from hijacking the boot process.",tier:2},
+  {q:"What PSU efficiency rating wastes the least energy as heat?",c:["80 Plus Titanium","80 Plus Gold","80 Plus Bronze","80 Plus (basic)"],e:"80 Plus certification tiers: 80 Plus → Bronze → Silver → Gold → Platinum → Titanium. Titanium = highest efficiency (>96% at 50% load).",tier:2},
+  {q:"What is a modular PSU?",c:["Cables are detachable — only connect what you need","Has a modular wattage selector","Can be split into two PSUs","Has modular voltage rails"],e:"Modular PSU: attach only needed cables, reducing clutter and improving airflow. Semi-modular keeps main cables fixed. Non-modular = all cables always attached.",tier:2},
+  // Cables / Connectors
+  {q:"Which network cable supports 10 Gbps over 100 meters?",c:["Cat 6a","Cat 6","Cat 5e","Cat 5"],e:"Cat 6a = 10 Gbps / 100m. Cat 6 = 10 Gbps / 55m only. Cat 5e = 1 Gbps / 100m. Cat 5 = 100 Mbps (ancient).",tier:1},
+  {q:"Which wiring standard is most common in US commercial installations?",c:["T568B","T568A","T568C","EIA-568D"],e:"T568B is the US commercial standard. T568A is used in residential and government. Both work — but both ends of a cable MUST match.",tier:1},
+  {q:"Single-mode vs multimode fiber — which goes farther?",c:["Single-mode (uses laser, km range)","Multimode (uses LED, shorter range)","Both go the same distance","Depends on cable color"],e:"Single-mode: narrow core, laser light, long distances (km). Multimode: wider core, LED, short distances (within buildings/data centers). SMF = yellow, MMF = orange/aqua.",tier:2},
+  {q:"What connector type is used at the end of an Ethernet cable?",c:["RJ45","RJ11","F-type","BNC"],e:"RJ45 = 8-pin Ethernet connector. RJ11 = 4/6-pin phone/DSL connector. F-type = coax (cable TV/internet). LC/SC = fiber.",tier:1},
+  {q:"What cable type requires a plenum-rated jacket in HVAC spaces?",c:["CMP (Plenum-rated)","CMR (Riser-rated)","CMG (General purpose)","CMX (Outdoor)"],e:"Plenum spaces are air-handling areas. Burning PVC releases toxic fumes. CMP plenum-rated cable uses low-smoke, fire-resistant jacket. Required by code.",tier:2},
+  {q:"What video connector carries both digital video AND audio, and is most common on TVs?",c:["HDMI","DisplayPort","DVI","VGA"],e:"HDMI carries digital video + audio in one cable. DisplayPort also carries both but is more common on monitors/PCs. DVI = video only. VGA = analog video only.",tier:1},
+  {q:"What is the maximum speed of USB 3.0?",c:["5 Gbps","480 Mbps","10 Gbps","40 Gbps"],e:"USB 3.0 = 5 Gbps (SuperSpeed). USB 2.0 = 480 Mbps. USB 3.1 Gen 2 = 10 Gbps. Thunderbolt 4/USB4 = 40 Gbps.",tier:1},
+  // Printers
+  {q:"A laser printer produces garbled characters and random symbols. Most likely cause?",c:["Wrong/corrupt printer driver or language mismatch","Low toner","Paper jam","Network issue"],e:"Garbled output = driver mismatch. Often PCL data sent to PostScript printer or vice versa. Reinstall correct manufacturer driver.",tier:2},
+  {q:"What Windows service must be restarted when the print queue freezes?",c:["Print Spooler service","Windows Print Manager","Document Queue Service","Printer Host Service"],e:"Print Spooler (spoolsv.exe) manages the print queue. When it crashes, jobs freeze. Stop service, delete files in spool folder, restart service.",tier:2},
+  {q:"How should you clean up spilled laser printer toner?",c:["Toner vacuum or damp cloth — NEVER compressed air","Compressed air to blow away","Regular vacuum on low","Paper towels only"],e:"Regular vacuums exhaust fine toner into air (health hazard). Compressed air spreads it everywhere. Use toner vacuum. For skin: cold water (hot sets toner).",tier:1},
+  {q:"What is the first step when inkjet prints are streaky?",c:["Run print head cleaning cycle","Replace ink cartridge","Update drivers","Replace the printer"],e:"Streaky inkjet = clogged print heads from dried ink. Print head cleaning cycle (from printer software) usually fixes it before replacing cartridges.",tier:2},
+  {q:"A thermal printer produces faded output. What do you clean?",c:["Heating element with isopropyl alcohol","Print heads with cleaning cycle","Ink cartridge contacts","Drum unit"],e:"Thermal printers have no ink. They use heat to darken special paper. Dirty heating element = faded output. Clean with IPA. Also check: using correct thermal paper?",tier:2},
+  {q:"What does ADF stand for on a printer/scanner?",c:["Automatic Document Feeder","Auto-Duplex Function","Automatic Driver Firmware","Advanced Document Format"],e:"ADF = Automatic Document Feeder. Scans/copies multiple pages automatically. Flatbed scanner requires placing each page manually on the glass.",tier:1},
+  {q:"What printer language is common on HP printers?",c:["PCL (Printer Control Language)","PostScript","ZPL","IPP"],e:"PCL = HP's Printer Control Language. PostScript = Adobe's language (common in design/publishing). Driver must match printer's configured language.",tier:1},
+  {q:"What is impact printer's unique capability that other types lack?",c:["Can print multipart/carbon copy forms","Fastest print speed","Best photo quality","Cheapest per page"],e:"Impact printers (dot matrix) physically strike ribbon onto paper — the only type that works with carbon copy forms. Used for receipts, invoices, shipping labels.",tier:2},
+],
+trbl:[
+  {q:"Step 2 of CompTIA's troubleshooting methodology after identifying the problem?",c:["Establish theory of probable cause","Test the theory","Implement the solution","Document findings"],e:"6 steps: 1)Identify, 2)Theory, 3)Test theory, 4)Plan+implement, 5)Verify+preventive, 6)Document. Don't skip documentation!",tier:1},
+  {q:"A PC randomly shuts down during gaming but works fine otherwise. Check first?",c:["Cooling — fans, dust, thermal paste","PSU wattage","RAM","Hard drive"],e:"Random shutdown under load = thermal protection. Check: fans spinning? Dust clogged? Heat sink seated? Thermal paste dried? Most common cause.",tier:1},
+  {q:"You smell burning from a PC. What do you do immediately?",c:["Unplug from wall immediately","Open case to identify source","Run diagnostics","Shut down via OS first"],e:"Burning smell = fire risk. UNPLUG immediately — don't wait for OS shutdown. Then inspect after it's powered off and cooled.",tier:1},
+  {q:"A mobile phone fell in water. First three steps?",c:["Power off → remove battery/SIM → desiccant bag 24h","Dry with towel → plug in → power on","Rice for 1 hour → power on","Hairdryer → power on after 30 min"],e:"1) Power off IMMEDIATELY — electricity+water = damage. 2) Remove SIM/SD/battery. 3) Desiccant bag (NOT rice — too slow) for at least 24 hours.",tier:1},
+  {q:"A projector shuts off after 10 minutes of use. Most likely cause?",c:["Overheating — thermal protection","Lamp end of life","Power saving mode","Input signal lost"],e:"Projectors generate huge heat. Thermal protection shuts them down. Check: dust filters clean? Vents unblocked? Fan working? Let fan run after shutoff to cool bulb.",tier:1},
+  {q:"PC powers on (fans/lights) but nothing on monitor. Check first?",c:["Monitor input source and cable","Reinstall RAM","Flash BIOS","Replace GPU"],e:"Always start simple: Is monitor on? Correct input source? Cable seated? Try different cable and different monitor before suspecting GPU/RAM.",tier:1},
+  {q:"A POST beep code occurs during startup. What does it indicate?",c:["Hardware failure — look up code in MB manual","OS corruption","Virus detected","BIOS update needed"],e:"POST beeps = hardware failure during Power-On Self-Test. Beep patterns vary by manufacturer — always look up in the motherboard manual.",tier:1},
+  {q:"Laptop battery swells visibly. What do you do?",c:["Power off immediately — fire hazard — replace ASAP","Tape it down and monitor","Run battery diagnostic","Deflate with pin"],e:"Swollen Li-ion = chemical reaction creating gas = serious fire/explosion risk. Power off NOW. Don't charge. Don't puncture. Replace immediately.",tier:1},
+  {q:"Troubleshooting 'no power' on a desktop PC — first step?",c:["Check wall outlet and power cord","Open case and reseat components","Replace the PSU","Check RAM seating"],e:"Always start external before internal. Verify outlet has power (use a lamp/tester). Check power cord at both ends. Then check PSU switch on back.",tier:1},
+  {q:"A user can't install an app on their phone. It says storage is full but shows 5GB free. What else to check?",c:["iOS needs staging space + check iOS version compatibility","Clear browser cache","The app store account is banned","Disable antivirus"],e:"iOS needs more space than the app size for installation staging. Also check: iOS version compatible with app? Signed into correct Apple ID? Screen Time restrictions?",tier:2},
+  {q:"A BSOD appears with an error code. What should you do?",c:["Write down the stop code and research it","Reinstall Windows immediately","Replace the hard drive","Run antivirus"],e:"BSODs have specific stop codes (e.g., MEMORY_MANAGEMENT, DRIVER_IRQL). Write the code down, then research it — it points to the specific cause.",tier:1},
+  {q:"Wireless connection drops frequently. What to suspect first?",c:["Interference or weak signal — change channel or move closer","Wrong IP address","DNS failure","Outdated network card"],e:"Frequent drops = interference (microwaves, other Wi-Fi, Bluetooth) or weak signal. Try: change channel (use 1/6/11 on 2.4GHz), move closer, or switch to 5GHz.",tier:2},
+  {q:"Mobile device charges slowly or not at all. First steps?",c:["Test cable → inspect port for debris → test adapter → test outlet","Replace battery","Factory reset","Restart the phone"],e:"Isolate the component: 1) Known-good cable. 2) Clean charging port (lint/debris is common). 3) Test adapter. 4) Test outlet. Replace the failing part.",tier:2},
+  {q:"What does S.M.A.R.T. failure mean for a hard drive?",c:["Drive is predicted to fail — back up immediately","Drive is running perfectly","Drive needs defragmentation","Drive needs a firmware update"],e:"S.M.A.R.T. failure = drive's self-monitoring detects imminent failure. Back up ALL data IMMEDIATELY. Replace the drive. This is a warning, not a guarantee of when.",tier:1},
+  {q:"Screen shows image but with incorrect colors. First check?",c:["Display cable connection and display settings","Replace the monitor","Update GPU driver","Reinstall OS"],e:"Incorrect colors first check: cable seated properly? Color profile correct in display settings? Test with different cable. Then check GPU driver.",tier:2},
+],
+cloud:[
+  {q:"What is the difference between Type 1 and Type 2 hypervisors?",c:["Type 1 runs on bare metal; Type 2 runs on top of an OS","Type 1 is for Windows; Type 2 is for Linux","Type 1 is software; Type 2 is hardware","Type 1 is newer; Type 2 is legacy"],e:"Type 1 (bare metal): VMware ESXi, Hyper-V, KVM — directly on hardware, more efficient. Type 2 (hosted): VirtualBox, VMware Workstation — runs as an app.",tier:1},
+  {q:"Microsoft 365 (email + Office apps) is which cloud service model?",c:["SaaS","PaaS","IaaS","Private cloud"],e:"SaaS = provider manages everything. You just use the app. Gmail, M365, Salesforce = SaaS. You manage nothing infrastructure-related.",tier:1},
+  {q:"A developer needs a platform to deploy code without managing servers. Which model?",c:["PaaS","SaaS","IaaS","Private cloud"],e:"PaaS = provider manages infrastructure and OS, developer manages only the app/code. Heroku, Azure App Service, Google App Engine = PaaS.",tier:1},
+  {q:"Which cloud model gives the most control over infrastructure?",c:["IaaS","PaaS","SaaS","Hybrid"],e:"IaaS = provider gives hardware (compute, storage, network). YOU manage OS, middleware, and app. AWS EC2, Azure VMs = IaaS.",tier:1},
+  {q:"A company uses AWS for dev/test but keeps sensitive data on-premises. What cloud model?",c:["Hybrid","Private","Public","Community"],e:"Hybrid cloud = mix of private (on-premises/dedicated) and public (AWS/Azure/GCP). Common when regulations require some data on-premises.",tier:1},
+  {q:"What is VDI?",c:["Desktop OS runs as VM on a server, accessed via thin client","Virtual disk imaging for backups","A type of remote VPN","Video display interface"],e:"VDI = user's desktop is a VM in a data center. Thin client just connects to it. Benefits: centralized management, data stays in data center, easy to replace endpoints.",tier:1},
+  {q:"What is a key security concern with virtual machines?",c:["VM escape — malware breaking out to affect the host","VMs always share passwords","VMs cannot have firewalls","Virtual networks are unencrypted"],e:"VM escape = rare but serious — malware breaks out of guest VM and affects hypervisor/host. Keep hypervisor patched. Each VM needs own firewall and AV.",tier:2},
+  {q:"What does 'elasticity' mean in cloud computing?",c:["Resources automatically scale up/down based on demand","All cloud providers charge the same","Data is always available","Resources are shared between customers"],e:"Elasticity = auto-scaling. Cloud automatically adds resources during traffic spikes, reduces them when demand drops. You pay for what you use.",tier:1},
+  {q:"What are containers compared to VMs?",c:["Lightweight — share host OS kernel, no full guest OS","Heavier — each needs a full OS","Slower than VMs","Only for Linux workloads"],e:"Containers (Docker, Kubernetes) share the host OS kernel — much lighter than VMs. VMs each have full guest OS. Containers = faster start, less overhead.",tier:2},
+  {q:"IaaS, PaaS, SaaS — pizza analogy for IaaS?",c:["Take-and-bake (you manage OS and up)","Dining out (provider manages everything)","Pizza delivery (provider manages platform)","Frozen pizza (manage everything yourself)"],e:"IaaS=take-and-bake (get raw ingredients, cook yourself), PaaS=delivery (platform delivered, you add app), SaaS=dining out (everything done for you).",tier:2},
+],
+mobile:[
+  {q:"What battery type do most modern mobile devices use?",c:["Lithium-ion (Li-ion) or LiPo","Nickel-cadmium (NiCd)","Nickel-metal hydride (NiMH)","Lead-acid"],e:"Li-ion and LiPo = no memory effect (can top off anytime), high energy density, light weight. NiCd had memory effect — needed full discharge before charging.",tier:1},
+  {q:"What RAM form factor is used in laptops?",c:["SO-DIMM","DIMM","SIMM","M.2"],e:"SO-DIMM (Small Outline DIMM) — about half the physical size of a desktop DIMM, same function.",tier:1},
+  {q:"What is the difference between an eSIM and a physical SIM?",c:["eSIM is embedded and activated digitally; SIM is a removable card","eSIM is faster","eSIM only works with 5G","SIM stores more data"],e:"Both identify your device on carrier network. Physical SIM = removable card. eSIM = soldered chip, activated via QR code/carrier app. Supports multiple profiles.",tier:1},
+  {q:"What mobile connectivity standard reaches up to 10 Gbps?",c:["5G","4G LTE","LTE-A","3G"],e:"5G = up to 10 Gbps. 4G LTE = up to 150 Mbps. LTE-A = up to 300 Mbps. 3G = early mobile broadband. Each is backward compatible.",tier:1},
+  {q:"What is the difference between a docking station and a port replicator?",c:["Docking station adds full expansion; port replicator just adds ports","They are the same thing","Port replicator is more feature-rich","Docking station is for desktops only"],e:"Docking station: full expansion, can add PCIe cards, power. Port replicator: portable, USB-based, just adds common ports (USB, HDMI, audio).",tier:2},
+  {q:"Steps to pair a new Bluetooth device?",c:["Enable BT → pairing mode on both → find device → enter PIN → test","Enable BT → find device → done","Just turn on BT and devices auto-pair","Reset both devices first"],e:"1)Enable Bluetooth on both. 2)Put new device in pairing mode (varies by device). 3)Find it in device list. 4)Enter PIN if prompted. 5)Test connection.",tier:1},
+  {q:"What is BYOD and its main security challenge?",c:["Bring Your Own Device — securing company data on personal devices","Buy Your Own Disk — employee buys company storage","Both Your Own Domain — personal email at work","None of the above"],e:"BYOD = employees use personal phones/laptops for work. Challenge: enforcing security policies (MDM, encryption) while respecting personal data privacy.",tier:1},
+  {q:"What can MDM software do to a lost corporate device?",c:["Remote wipe all data","Only track its location","Only lock the screen","Nothing — physical access required"],e:"MDM (Mobile Device Management) can: remote wipe, lock, track location, push policies, enforce encryption, and containerize work data from personal data.",tier:2},
+  {q:"A laptop battery drains from 100% to 0% in 30 minutes (used to last 6 hours). Likely cause?",c:["Battery degradation — needs replacement","Too many apps running","Screen brightness too high","Charger is faulty"],e:"Rapid capacity loss over time = Li-ion battery aging. Each charge cycle reduces capacity. Check battery health in OS settings. Replace the battery.",tier:1},
+  {q:"What accessories does a stylus use that a finger touch doesn't?",c:["Digitizer (converts pressure/position to digital signal)","Touchscreen only","Bluetooth connection","NFC pairing"],e:"Digitizer converts analog stylus input (position, pressure, tilt) to precise digital coordinates. Regular touchscreens only detect finger capacitive touch.",tier:2},
+],
+acr:[
+  {q:"What does RAID stand for?",c:["Redundant Array of Independent Disks","Random Access Indexed Drive","Redundant Array of Inexpensive Drives","Rapid Access Internal Disk"],e:"Redundant Array of Independent Disks. Combines multiple drives for performance and/or redundancy.",tier:1},
+  {q:"What does DHCP stand for?",c:["Dynamic Host Configuration Protocol","Direct Host Control Protocol","Dynamic Hardware Configuration Protocol","Distributed Host Connection Protocol"],e:"Dynamic Host Configuration Protocol — automatically assigns IP addresses, subnet masks, default gateways, and DNS servers to devices.",tier:1},
+  {q:"What does DNS stand for?",c:["Domain Name System","Digital Network Service","Distributed Name Server","Direct Network System"],e:"Domain Name System — the internet's phone book. Translates human-readable hostnames (google.com) to IP addresses.",tier:1},
+  {q:"What does NVMe stand for?",c:["Non-Volatile Memory Express","Network Virtual Memory Extension","Non-Variable Memory Expansion","Native Volume Memory Express"],e:"Non-Volatile Memory Express — high-speed SSD interface over PCIe. Much faster than SATA. Usually uses M.2 form factor.",tier:1},
+  {q:"What does APIPA stand for?",c:["Automatic Private IP Addressing","Auto-Provisioned Interface Protocol Address","Assigned Private Internet Protocol Address","Automatic Protocol IP Assignment"],e:"Automatic Private IP Addressing — Windows assigns 169.254.x.x when DHCP is unreachable.",tier:1},
+  {q:"What does PoE stand for?",c:["Power over Ethernet","Protocol over Ethernet","Point of Entry","Power of Equipment"],e:"Power over Ethernet — delivers electrical power AND data through a single Ethernet cable.",tier:1},
+  {q:"What does TPM stand for?",c:["Trusted Platform Module","Total Power Management","Thermal Protection Module","Transfer Protocol Manager"],e:"Trusted Platform Module — hardware chip that securely stores cryptographic keys. Used for BitLocker disk encryption.",tier:1},
+  {q:"What does ECC stand for in ECC RAM?",c:["Error-Correcting Code","Enhanced Cache Controller","Extended Clock Cycle","Efficient Core Circuit"],e:"Error-Correcting Code — RAM that detects AND corrects single-bit memory errors. Required for servers handling critical data.",tier:1},
+  {q:"What does S.M.A.R.T. stand for?",c:["Self-Monitoring Analysis and Reporting Technology","System Maintenance and Repair Technology","Storage Monitoring and Runtime Testing","Standard Memory Allocation and Reporting Tool"],e:"Self-Monitoring, Analysis and Reporting Technology — built into drives to predict failure before it happens.",tier:1},
+  {q:"What does SCADA stand for?",c:["Supervisory Control and Data Acquisition","System Control and Device Administration","Secure Command and Data Authentication","Synchronized Control and Diagnostics Array"],e:"Supervisory Control and Data Acquisition — monitors/controls industrial machinery. Critical infrastructure — kept isolated from regular networks.",tier:1},
+  {q:"What does VDI stand for?",c:["Virtual Desktop Infrastructure","Video Display Interface","Virtual Data Integration","Volume Disk Image"],e:"Virtual Desktop Infrastructure — desktop OS runs as VM in data center, accessed via thin client.",tier:1},
+  {q:"What does UTM stand for?",c:["Unified Threat Management","Universal Traffic Monitor","User Token Manager","Unified TCP Manager"],e:"Unified Threat Management — all-in-one security device combining firewall, IDS/IPS, VPN, antivirus, content filtering.",tier:1},
+  {q:"What does VLAN stand for?",c:["Virtual Local Area Network","Variable Length Access Node","Virtual Layer Area Network","Verified LAN"],e:"Virtual Local Area Network — logical segmentation of a physical switch into multiple broadcast domains.",tier:1},
+  {q:"What does SSID stand for?",c:["Service Set Identifier","Secure Station ID","Signal Strength Indicator","System Service Interface Daemon"],e:"Service Set Identifier — the name of a Wi-Fi network broadcast by access points.",tier:1},
+  {q:"What does MAN stand for in networking?",c:["Metropolitan Area Network","Managed Access Node","Multi-Area Network","Mobile Application Network"],e:"Metropolitan Area Network — covers a city or campus. Larger than LAN (building), smaller than WAN (global).",tier:1},
+  {q:"What does SAN stand for?",c:["Storage Area Network","Secure Access Node","System Area Network","Subnet Address Node"],e:"Storage Area Network — dedicated high-speed network for storage devices. Separate from regular LAN.",tier:1},
+  {q:"What does MDM stand for?",c:["Mobile Device Management","Master Data Module","Managed Device Monitor","Mobile Domain Manager"],e:"Mobile Device Management — software to manage and secure mobile devices in an organization.",tier:1},
+  {q:"What does PaaS stand for?",c:["Platform as a Service","Provisioned Application Server","Physical Access System","Protocol as a Service"],e:"Platform as a Service — cloud provider manages infrastructure and OS; you manage only the application.",tier:1},
+  {q:"What does IaaS stand for?",c:["Infrastructure as a Service","Internet Access as a Service","Integrated Application System","Internal Application Server"],e:"Infrastructure as a Service — cloud provider gives hardware; you manage OS, middleware, and application.",tier:1},
+  {q:"What does IOPS stand for?",c:["Input/Output Operations Per Second","Internet Operations Protocol Standard","Internal OS Performance Score","Integrated Output Processing System"],e:"Input/Output Operations Per Second — measures storage device performance. SSDs have dramatically higher IOPS than HDDs.",tier:1},
+  {q:"What does ONT stand for?",c:["Optical Network Terminal","Open Node Transceiver","Output Network Terminator","Optical NIC Technology"],e:"Optical Network Terminal — the device at your home/office that converts fiber optic signal to Ethernet. The fiber 'modem'.",tier:2},
+  {q:"What does WISP stand for?",c:["Wireless Internet Service Provider","Wide-area IP Service Protocol","Wired Internet Security Provider","Wireless Infrastructure Service Point"],e:"Wireless Internet Service Provider — delivers internet via radio towers rather than wired infrastructure. Common in rural areas.",tier:2},
+  {q:"What does PCL stand for (in printing)?",c:["Printer Control Language","Protocol Communication Layer","Print Cache Log","Paper Control Language"],e:"Printer Control Language — HP's page description language for printers. The alternative is PostScript (Adobe).",tier:1},
+  {q:"What does ADF stand for?",c:["Automatic Document Feeder","Auto-Duplex Function","Automatic Driver Firmware","Advanced Document Format"],e:"Automatic Document Feeder — scans/copies multiple pages automatically, one after another.",tier:1},
+  {q:"What does NFC stand for?",c:["Near-Field Communication","Network Frequency Controller","Null Frame Carrier","Node Forwarding Cache"],e:"Near-Field Communication — two-way wireless, ~4cm range. Used for contactless payments (Apple Pay, Google Pay) and device pairing.",tier:1},
+],
+};
+
+// ════════════════════════════════════════════════════════════
+// ZONES CONFIG
+// ════════════════════════════════════════════════════════════
+const ZONES = [
+  {id:'net',   name:'NET SECTOR',    icon:'🌐', color:'var(--net)',    desc:'Ports, protocols, troubleshooting. Your known weak zone.', badge:'HOT ZONE',
+   enemies:[
+     {name:'VIRUS BOT',    art:'👾', hp:20, atk:4, gold:15, xp:20},
+     {name:'PACKET THIEF', art:'🦠', hp:28, atk:5, gold:20, xp:25},
+     {name:'NET DAEMON',   art:'💀', hp:40, atk:7, gold:35, xp:40, isBoss:true},
+   ]},
+  {id:'hw',    name:'HW DUNGEON',    icon:'🔧', color:'var(--hw)',     desc:'Hardware, cables, RAID, printers. Hands-on scenarios.', badge:'HOT ZONE',
+   enemies:[
+     {name:'STATIC GHOST', art:'⚡', hp:22, atk:4, gold:15, xp:20},
+     {name:'RAID WRAITH',  art:'💾', hp:30, atk:6, gold:22, xp:28},
+     {name:'HW OVERLORD',  art:'🤖', hp:45, atk:8, gold:38, xp:45, isBoss:true},
+   ]},
+  {id:'trbl',  name:'CRASH WASTES',  icon:'🚨', color:'var(--trbl)',   desc:'Troubleshooting scenarios. Think fast.', badge:null,
+   enemies:[
+     {name:'BUG SPRITE',   art:'🐛', hp:18, atk:4, gold:12, xp:18},
+     {name:'BSOD SPECTER', art:'🔵', hp:26, atk:5, gold:18, xp:22},
+     {name:'THE CRASHER',  art:'☠️', hp:38, atk:8, gold:32, xp:38, isBoss:true},
+   ]},
+  {id:'cloud', name:'CLOUD CITADEL', icon:'☁️', color:'var(--cloud)',  desc:'Virtualization, hypervisors, cloud models.', badge:null,
+   enemies:[
+     {name:'FAKE SERVER',  art:'🖥️', hp:20, atk:4, gold:14, xp:20},
+     {name:'VM PHANTOM',   art:'👻', hp:28, atk:5, gold:20, xp:26},
+     {name:'CLOUD TYRANT', art:'🌩️', hp:42, atk:7, gold:36, xp:42, isBoss:true},
+   ]},
+  {id:'mobile',name:'MOBILE MARSH',  icon:'📱', color:'var(--mobile)', desc:'Mobile devices, MDM, battery, connectivity.', badge:null,
+   enemies:[
+     {name:'DEAD BATTERY', art:'🔋', hp:16, atk:3, gold:12, xp:16},
+     {name:'SIGNAL JAMMER',art:'📡', hp:24, atk:5, gold:18, xp:22},
+     {name:'MALWARE KING', art:'👑', hp:50, atk:9, gold:50, xp:60, isBoss:true},
+   ]},
+  {id:'acr',   name:'ACRONYM VAULT', icon:'🔤', color:'var(--acr)',    desc:'Every acronym on the exam. Speed round.', badge:null,
+   enemies:[
+     {name:'JARGON GREMLIN',art:'😈', hp:14, atk:3, gold:10, xp:14},
+     {name:'ABBREV DEMON',  art:'🔡', hp:20, atk:4, gold:14, xp:18},
+     {name:'ACRONYM KING',  art:'📜', hp:35, atk:6, gold:28, xp:35, isBoss:true},
+   ]},
+];
+
+// ════════════════════════════════════════════════════════════
+// SHOP ITEMS
+// ════════════════════════════════════════════════════════════
+const SHOP_ITEMS = [
+  {id:'potion', name:'HEALTH POTION', icon:'🧪', desc:'Restore 15 HP in battle', cost:20, uses:3},
+  {id:'hint',   name:'HINT SCROLL',  icon:'📜', desc:'Eliminate 2 wrong answers', cost:25, uses:2},
+  {id:'shield', name:'IRON SHIELD',  icon:'🛡️', desc:'Block next enemy attack', cost:30, uses:2},
+  {id:'timer',  name:'TIME CRYSTAL', icon:'⏳', desc:'Add 10s to the timer', cost:25, uses:3},
+  {id:'revive', name:'REVIVE STONE', icon:'💎', desc:'Revive with 10 HP if KO\'d', cost:50, uses:1},
+];
+
+// ════════════════════════════════════════════════════════════
+// PLAYER STATE
+// ════════════════════════════════════════════════════════════
+let P = {
+  level:1, hp:30, maxHp:30, xp:0, xpNext:100,
+  gold:30, atk:8, streak:0,
+  battlesWon:0,
+  items:{potion:1, hint:1, shield:0, timer:0, revive:0},
+  zonesCleared:[],
+  zonesProgress:{}, // {zoneId: battleIdx}
+};
+
+// Current battle state
+let B = {
+  zone:null, enemy:null, enemyBattleIdx:0,
+  questions:[], qIdx:0,
+  eHp:0, eMaxHp:0,
+  pHp:0,
+  correct:0, total:0,
+  goldEarned:0, xpEarned:0,
+  shieldActive:false,
+  timerInterval:null, timeLeft:0, timeLimit:20,
+  answered:false,
+};
+
+// ════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  if(id === 's-title') checkForSave();
+}
+
+// ════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
+
+function floatText(txt, x, y, cls){
+  const el=document.createElement('div');
+  el.className='dmg-float '+cls;
+  el.textContent=txt;
+  el.style.left=x+'px';
+  el.style.top=(y+window.scrollY)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
+
+function logMsg(msg){
+  const log=document.getElementById('battle-log');
+  if(log) log.textContent=msg;
+}
+
+// ════════════════════════════════════════════════════════════
+// GAME START
+// ════════════════════════════════════════════════════════════
+function startGame(){
+  P={level:1,hp:30,maxHp:30,xp:0,xpNext:100,gold:30,atk:8,streak:0,
+     battlesWon:0,items:{potion:1,hint:1,shield:0,timer:0,revive:0},
+     zonesCleared:[],zonesProgress:{}};
+  goMap();
+}
+
+function goMap(){
+  renderMap();
+  showScreen('s-map');
+}
+
+// ════════════════════════════════════════════════════════════
+// MAP
+// ════════════════════════════════════════════════════════════
+function renderMap(){
+  document.getElementById('p-level').textContent=P.level;
+  document.getElementById('p-gold-map').textContent=P.gold;
+  document.getElementById('stat-atk').textContent='⚔️'+P.atk;
+  document.getElementById('stat-streak').textContent='🔥'+P.streak;
+  document.getElementById('stat-battles').textContent='🏆'+P.battlesWon;
+
+  const hpPct=clamp((P.hp/P.maxHp)*100,0,100);
+  document.getElementById('map-hp-bar').style.width=hpPct+'%';
+  document.getElementById('map-hp-num').textContent=P.hp+'/'+P.maxHp;
+  const xpPct=clamp((P.xp/P.xpNext)*100,0,100);
+  document.getElementById('map-xp-bar').style.width=xpPct+'%';
+  document.getElementById('map-xp-num').textContent=P.xp+'/'+P.xpNext;
+
+  const grid=document.getElementById('zones-grid');
+  grid.innerHTML='';
+  ZONES.forEach((z,zi)=>{
+    const cleared=P.zonesCleared.includes(z.id);
+    const progress=P.zonesProgress[z.id]||0;
+    const locked=zi>0 && !P.zonesCleared.includes(ZONES[zi-1].id);
+    const card=document.createElement('div');
+    card.className='zone-card'+(locked?' locked':'');
+    card.style.setProperty('--zc',z.color);
+
+    let badge='';
+    if(locked) badge='<div class="zone-badge locked-b">🔒 LOCKED</div>';
+    else if(cleared) badge='<div class="zone-badge done">✓ CLEARED</div>';
+    else if(z.badge) badge=`<div class="zone-badge hot">${z.badge}</div>`;
+
+    const fillPct=cleared?100:Math.round((progress/3)*100);
+    card.innerHTML=`
+      ${badge}
+      <div class="zone-icon">${z.icon}</div>
+      <div class="zone-name">${z.name}</div>
+      <div class="zone-desc">${z.desc}</div>
+      <div class="zone-progress">
+        <div style="font-family:'VT323',monospace;font-size:14px;color:var(--dim);">
+          ${cleared?'COMPLETE':progress+'/3 battles'}
+        </div>
+        <div class="zp-bar"><div class="zp-fill" style="width:${fillPct}%"></div></div>
+      </div>`;
+    if(!locked) card.onclick=()=>enterZone(z);
+    grid.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// BATTLE INIT
+// ════════════════════════════════════════════════════════════
+function enterZone(zone){
+  const battleIdx=P.zonesProgress[zone.id]||0;
+  if(battleIdx>=3){
+    // Zone already cleared, restart
+    P.zonesProgress[zone.id]=0;
+    P.zonesCleared=P.zonesCleared.filter(z=>z!==zone.id);
+  }
+  startBattle(zone, battleIdx);
+}
+
+function startBattle(zone, battleIdx){
+  const enemy={...zone.enemies[battleIdx]};
+  B={
+    zone:zone, enemy:enemy, enemyBattleIdx:battleIdx,
+    questions:[], qIdx:0,
+    eHp:enemy.hp, eMaxHp:enemy.hp,
+    pHp:P.hp,
+    correct:0, total:0,
+    goldEarned:0, xpEarned:0,
+    shieldActive:false,
+    timerInterval:null, timeLeft:0,
+    timeLimit: enemy.isBoss ? 15 : 20,
+    answered:false,
+  };
+
+  // Build question queue: 5 questions per battle, boss gets harder ones
+  const pool=shuffle(QB[zone.id]);
+  B.questions = enemy.isBoss
+    ? pool.filter(q=>q.tier>=2).concat(pool.filter(q=>q.tier<2)).slice(0,6)
+    : pool.slice(0,5);
+
+  // Update UI
+  showScreen('s-battle');
+  const zTag=document.getElementById('b-zone-tag');
+  zTag.textContent=zone.icon+' '+zone.name;
+  zTag.style.setProperty('--zc',zone.color);
+  zTag.style.color=zone.color;
+  zTag.style.borderColor=zone.color;
+
+  document.getElementById('b-progress').textContent=
+    `Battle ${battleIdx+1}/3${enemy.isBoss?' 👑 BOSS':''}`;
+
+  document.getElementById('e-name').textContent=
+    (enemy.isBoss?'👑 ':'')+enemy.name;
+  document.getElementById('e-art').textContent=enemy.art;
+
+  updateBattleHP();
+  renderItems();
+  logMsg(`⚡ ${enemy.name} appears! Answer questions to deal damage!`);
+  renderBattleQuestion();
+}
+
+// ════════════════════════════════════════════════════════════
+// HP DISPLAY
+// ════════════════════════════════════════════════════════════
+function updateBattleHP(){
+  const ePct=clamp((B.eHp/B.eMaxHp)*100,0,100);
+  document.getElementById('e-hpbar').style.width=ePct+'%';
+  document.getElementById('e-hpnum').textContent=B.eHp+'/'+B.eMaxHp;
+
+  const pPct=clamp((B.pHp/P.maxHp)*100,0,100);
+  const pBar=document.getElementById('p-hpbar');
+  pBar.style.width=pPct+'%';
+  pBar.className='c-hpfill'+(pPct<30?' low':'');
+  document.getElementById('p-hpnum').textContent=B.pHp+'/'+P.maxHp;
+}
+
+// ════════════════════════════════════════════════════════════
+// QUESTION RENDER
+// ════════════════════════════════════════════════════════════
+function renderBattleQuestion(){
+  // Reset next button to default action every time a new question renders
+  const nextBtn=document.getElementById('b-next');
+  nextBtn.onclick=()=>nextBattleQuestion();
+  nextBtn.textContent='▶ CONTINUE';
+
+  if(B.qIdx>=B.questions.length){
+    // All questions answered — check if enemy still alive
+    if(B.eHp>0){
+      // Enemy survives — add more questions
+      const extra=shuffle(QB[B.zone.id]).slice(0,3);
+      B.questions.push(...extra);
+    } else {
+      return; // already handled in answer logic
+    }
+  }
+
+  B.answered=false;
+  const q=B.questions[B.qIdx];
+
+  document.getElementById('b-qtag').textContent=
+    q.tier>=2 ? '⚠ HARD' : '▸ QUESTION';
+  document.getElementById('b-qtext').textContent=q.q;
+  document.getElementById('b-explain').classList.remove('show');
+  document.getElementById('b-next').classList.remove('show');
+
+  const qCard=document.getElementById('b-qcard');
+  qCard.style.borderColor='';
+  qCard.style.boxShadow='';
+
+  // Shuffle answers — track correct answer TEXT not index
+  const correctText=q.c[0];
+  const shuffled=shuffle([...q.c]);
+  // Find where correct answer ended up after shuffle
+  const correctDisplayIdx=shuffled.indexOf(correctText);
+
+  const choicesDiv=document.getElementById('b-choices');
+  choicesDiv.innerHTML='';
+  shuffled.forEach((text,i)=>{
+    const btn=document.createElement('button');
+    btn.className='b-choice';
+    btn.dataset.isCorrect=(i===correctDisplayIdx)?'1':'0';
+    btn.dataset.text=text;
+    const letter=String.fromCharCode(65+i);
+    btn.innerHTML=`<span class="b-cletter">${letter}</span><span>${text}</span>`;
+    btn.onclick=()=>handleBattleAnswer(btn, i===correctDisplayIdx, q);
+    choicesDiv.appendChild(btn);
+  });
+
+  startBattleTimer();
+}
+
+function startBattleTimer(){
+  clearInterval(B.timerInterval);
+  B.timeLeft=B.timeLimit;
+  const bar=document.getElementById('b-timer-bar');
+  bar.style.width='100%';
+  bar.classList.remove('hurry');
+  B.timerInterval=setInterval(()=>{
+    B.timeLeft--;
+    const pct=(B.timeLeft/B.timeLimit)*100;
+    bar.style.width=pct+'%';
+    if(pct<30) bar.classList.add('hurry');
+    if(B.timeLeft<=0){
+      clearInterval(B.timerInterval);
+      handleTimeout();
+    }
+  },1000);
+}
+
+// ════════════════════════════════════════════════════════════
+// ANSWER HANDLING
+// ════════════════════════════════════════════════════════════
+function handleBattleAnswer(btn, isCorrect, q){
+  if(B.answered) return;
+  B.answered=true;
+  clearInterval(B.timerInterval);
+  B.total++;
+
+  // Disable all buttons
+  document.querySelectorAll('.b-choice').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.isCorrect==='1') b.classList.add('reveal');
+  });
+
+  if(isCorrect){
+    btn.classList.add('hit');
+    B.correct++;
+
+    // Damage calc: base + streak bonus + crit if answered fast
+    const timeRatio=B.timeLeft/B.timeLimit;
+    const isCrit=timeRatio>0.7 && Math.random()<0.25;
+    const streakBonus=Math.min(P.streak,5)*2;
+    let dmg=P.atk+streakBonus+(isCrit?P.atk:0);
+    dmg=Math.floor(dmg*(0.8+Math.random()*0.4));
+
+    P.streak++;
+    B.eHp=Math.max(0,B.eHp-dmg);
+
+    const btnRect=btn.getBoundingClientRect();
+    if(isCrit){
+      floatText('CRIT! -'+dmg+'💥',btnRect.left+btnRect.width/2,btnRect.top,'crit');
+      logMsg(`⚡ CRITICAL HIT! You deal ${dmg} damage to ${B.enemy.name}!`);
+    } else {
+      floatText('-'+dmg+'⚔️',btnRect.left+btnRect.width/2,btnRect.top,'good');
+      logMsg(`✅ Correct! You deal ${dmg} damage!${P.streak>2?' 🔥 x'+P.streak+' STREAK!':''}`);
+    }
+
+    document.getElementById('b-qcard').style.borderColor='var(--correct)';
+    document.getElementById('b-qcard').style.boxShadow='0 0 16px rgba(34,238,68,0.2)';
+
+    const goldGain=Math.floor(3+timeRatio*5+(isCrit?3:0));
+    B.goldEarned+=goldGain;
+    const xpGain=isCrit?20:10;
+    B.xpEarned+=xpGain;
+    P.gold+=goldGain;
+
+    updateBattleHP();
+
+    if(B.eHp<=0){
+      clearInterval(B.timerInterval);
+      showExplanation(q,true);
+      document.getElementById('b-next').textContent='⚔️ VICTORY!';
+      document.getElementById('b-next').classList.add('show');
+      document.getElementById('b-next').onclick=()=>battleVictory();
+      return;
+    }
+  } else {
+    btn.classList.add('miss');
+    P.streak=0;
+
+    let dmg=B.enemy.atk;
+    if(B.shieldActive){
+      dmg=0;
+      B.shieldActive=false;
+      logMsg(`🛡️ Shield blocked ${B.enemy.name}'s attack!`);
+    } else {
+      B.pHp=Math.max(0,B.pHp-dmg);
+      const btnRect=btn.getBoundingClientRect();
+      floatText('-'+dmg+'❌',btnRect.left+btnRect.width/2,btnRect.top,'bad');
+      logMsg(`❌ Wrong! ${B.enemy.name} attacks for ${dmg} damage!`);
+      document.getElementById('s-battle').classList.add('shake');
+      setTimeout(()=>document.getElementById('s-battle').classList.remove('shake'),400);
+    }
+
+    document.getElementById('b-qcard').style.borderColor='var(--wrong)';
+    document.getElementById('b-qcard').style.boxShadow='0 0 16px rgba(255,50,50,0.2)';
+    updateBattleHP();
+
+    if(B.pHp<=0){
+      // Check for revive item
+      if(P.items.revive>0){
+        P.items.revive--;
+        B.pHp=10;
+        updateBattleHP();
+        logMsg(`💎 REVIVE STONE activates! You survive with 10 HP!`);
+      } else {
+        clearInterval(B.timerInterval);
+        showExplanation(q,false);
+        document.getElementById('b-next').textContent='💀 GAME OVER';
+        document.getElementById('b-next').classList.add('show');
+        document.getElementById('b-next').onclick=()=>showGameOver();
+        return;
+      }
+    }
+  }
+
+  showExplanation(q,isCorrect);
+  document.getElementById('b-next').textContent='▶ CONTINUE';
+  document.getElementById('b-next').onclick=()=>nextBattleQuestion();
+  document.getElementById('b-next').classList.add('show');
+  renderItems();
+}
+
+function handleTimeout(){
+  if(B.answered) return;
+  B.answered=true;
+  B.total++;
+  P.streak=0;
+
+  document.querySelectorAll('.b-choice').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.isCorrect==='1') b.classList.add('reveal');
+  });
+
+  let dmg=B.enemy.atk+2;
+  if(B.shieldActive){dmg=0;B.shieldActive=false;logMsg('🛡️ Shield blocked the timeout penalty!');}
+  else {
+    B.pHp=Math.max(0,B.pHp-dmg);
+    logMsg(`⏰ Time's up! ${B.enemy.name} attacks for ${dmg} damage!`);
+    document.getElementById('s-battle').classList.add('shake');
+    setTimeout(()=>document.getElementById('s-battle').classList.remove('shake'),400);
+  }
+  updateBattleHP();
+
+  if(B.pHp<=0){
+    if(P.items.revive>0){P.items.revive--;B.pHp=10;updateBattleHP();}
+    else{
+      const q=B.questions[B.qIdx];
+      showExplanation(q,false);
+      document.getElementById('b-next').textContent='💀 GAME OVER';
+      document.getElementById('b-next').classList.add('show');
+      document.getElementById('b-next').onclick=()=>showGameOver();
+      return;
+    }
+  }
+
+  const q=B.questions[B.qIdx];
+  showExplanation(q,false);
+  document.getElementById('b-next').textContent='▶ CONTINUE';
+  document.getElementById('b-next').onclick=()=>nextBattleQuestion();
+  document.getElementById('b-next').classList.add('show');
+  renderItems();
+}
+
+function showExplanation(q,correct){
+  const el=document.getElementById('b-explain');
+  const lbl=document.getElementById('b-exp-label');
+  lbl.textContent=correct
+    ?`✅ HIT!${P.streak>2?' 🔥 '+P.streak+' STREAK':''}`
+    :'❌ MISS — STUDY THIS';
+  lbl.style.color=correct?'var(--correct)':'var(--dmg)';
+  document.getElementById('b-exp-text').textContent=q.e;
+  el.classList.add('show');
+}
+
+function nextBattleQuestion(){
+  B.qIdx++;
+  document.getElementById('b-next').classList.remove('show');
+  document.getElementById('b-explain').classList.remove('show');
+  renderBattleQuestion();
+}
+
+// ════════════════════════════════════════════════════════════
+// ITEMS
+// ════════════════════════════════════════════════════════════
+function renderItems(){
+  const bar=document.getElementById('item-bar');
+  bar.innerHTML='';
+  const defs={
+    potion:{label:'🧪 Potion',tip:'+15 HP'},
+    hint:  {label:'📜 Hint',  tip:'2 wrong removed'},
+    shield:{label:'🛡️ Shield', tip:'Block next hit'},
+    timer: {label:'⏳ +10s',  tip:'More time'},
+    revive:{label:'💎 Revive',tip:'1 life'},
+  };
+  Object.entries(defs).forEach(([id,def])=>{
+    const count=P.items[id]||0;
+    const btn=document.createElement('button');
+    btn.className='item-btn';
+    btn.disabled=count===0;
+    btn.innerHTML=`${def.label} <span class="item-count">x${count}</span>`;
+    btn.title=def.tip;
+    btn.onclick=()=>useItem(id);
+    bar.appendChild(btn);
+  });
+}
+
+function useItem(id){
+  if((P.items[id]||0)===0) return;
+  if(B.answered) return;
+  P.items[id]--;
+  if(id==='potion'){
+    const heal=15;
+    B.pHp=Math.min(P.maxHp,B.pHp+heal);
+    updateBattleHP();
+    logMsg(`🧪 Potion! Restored ${heal} HP.`);
+    floatText('+'+heal+'❤️',window.innerWidth/2,window.innerHeight/2,'good');
+  } else if(id==='hint'){
+    // Remove 2 wrong answers
+    const btns=[...document.querySelectorAll('.b-choice:not(:disabled)')];
+    const wrong=btns.filter(b=>b.dataset.isCorrect!=='1');
+    const toRemove=shuffle(wrong).slice(0,2);
+    toRemove.forEach(b=>{b.style.opacity='0.2';b.disabled=true;});
+    logMsg('📜 Hint scroll! Two wrong answers removed.');
+  } else if(id==='shield'){
+    B.shieldActive=true;
+    logMsg('🛡️ Iron Shield raised! Next enemy attack blocked.');
+  } else if(id==='timer'){
+    B.timeLeft=Math.min(B.timeLeft+10,B.timeLimit+10);
+    logMsg('⏳ Time Crystal! +10 seconds added.');
+  } else if(id==='revive'){
+    logMsg('💎 Revive Stone equipped. Will auto-activate if KO\'d.');
+  }
+  renderItems();
+}
+
+// ════════════════════════════════════════════════════════════
+// BATTLE OUTCOMES
+// ════════════════════════════════════════════════════════════
+function battleVictory(){
+  clearInterval(B.timerInterval);
+  P.hp=B.pHp;
+  P.gold+=B.enemy.gold;
+  B.goldEarned+=B.enemy.gold;
+  P.battlesWon++;
+
+  // XP gain
+  P.xp+=B.enemy.xp+B.xpEarned;
+  while(P.xp>=P.xpNext){
+    P.xp-=P.xpNext;
+    P.level++;
+    P.xpNext=Math.floor(P.xpNext*1.4);
+    P.maxHp+=5;
+    P.hp=Math.min(P.hp+10,P.maxHp);
+    P.atk+=1;
+    logMsg(`⬆️ LEVEL UP! You are now level ${P.level}!`);
+  }
+
+  // AUTO-SAVE after every battle win
+  saveGame(true);
+
+  // Advance zone progress
+  const nextBattleIdx=B.enemyBattleIdx+1;
+  if(nextBattleIdx>=3){
+    P.zonesCleared.push(B.zone.id);
+    P.zonesProgress[B.zone.id]=3;
+    showZoneVictory();
+  } else {
+    P.zonesProgress[B.zone.id]=nextBattleIdx;
+    // Show shop between battles
+    openShopBetween(B.zone, nextBattleIdx);
+  }
+}
+
+function showZoneVictory(){
+  document.getElementById('v-sub').textContent=B.zone.icon+' '+B.zone.name+' CLEARED!';
+  document.getElementById('v-correct').textContent=B.correct+'/'+B.total;
+  document.getElementById('v-gold').textContent='+'+B.goldEarned+'💰';
+  document.getElementById('v-xp').textContent='+'+B.xpEarned+'XP';
+
+  const tips={
+    net:'Networking mastered! Remember PLLDDR for troubleshooting and DORA for DHCP.',
+    hw:'Hardware dungeon cleared! Key: RAID is not a backup. Clicking drive = back up NOW.',
+    trbl:'Crash Wastes defeated! Remember the 6-step troubleshooting methodology.',
+    cloud:'Cloud Citadel fallen! Type 1 = bare metal, Type 2 = hosted. SaaS = you just use it.',
+    mobile:'Mobile Marsh cleared! 169.254.x.x = APIPA = DHCP problem.',
+    acr:'Acronym Vault mastered! You know your TLAs (Three Letter Acronyms).',
+  };
+  document.getElementById('v-tip').textContent='💡 '+tips[B.zone.id];
+  showScreen('s-victory');
+}
+
+function openShopBetween(zone, nextBattleIdx){
+  renderShop('shop-grid', 'shop-gold');
+  document.getElementById('shop-continue-btn').textContent=
+    `⚔️ CONTINUE — ${zone.enemies[nextBattleIdx].isBoss?'⚠️ BOSS BATTLE':'Battle '+(nextBattleIdx+1)+'/3'}`;
+  document.getElementById('shop-continue-btn').onclick=
+    ()=>startBattle(zone,nextBattleIdx);
+  showScreen('s-shop');
+}
+
+function openShop(){
+  renderShop('shop-free-grid','shop-free-gold');
+  showScreen('s-shop-free');
+}
+
+function renderShop(gridId, goldId){
+  document.getElementById(goldId).textContent=P.gold;
+  const grid=document.getElementById(gridId);
+  grid.innerHTML='';
+  SHOP_ITEMS.forEach(item=>{
+    const owned=P.items[item.id]||0;
+    const canAfford=P.gold>=item.cost;
+    const div=document.createElement('div');
+    div.className='shop-item'+(canAfford?'':' cant-afford');
+    div.innerHTML=`
+      <div class="si-icon">${item.icon}</div>
+      <div class="si-name">${item.name}</div>
+      <div class="si-desc">${item.desc}</div>
+      <div style="font-family:'VT323',monospace;font-size:15px;color:var(--dim);margin-bottom:8px;">Owned: ${owned}</div>
+      <div class="si-cost">💰 ${item.cost} GOLD</div>`;
+    if(canAfford) div.onclick=()=>{
+      P.gold-=item.cost;
+      if(!P.items[item.id]) P.items[item.id]=0;
+      P.items[item.id]+=1;
+      document.getElementById(goldId).textContent=P.gold;
+      renderShop(gridId,goldId);
+    };
+    grid.appendChild(div);
+  });
+}
+
+function showGameOver(){
+  clearInterval(B.timerInterval);
+  P.hp=Math.floor(P.maxHp*0.5); // partial HP restore on continue
+  document.getElementById('go-sub').textContent=
+    `${B.enemy.name} defeated you... but your knowledge grows.`;
+  document.getElementById('go-correct').textContent=B.correct;
+  document.getElementById('go-total').textContent=B.total;
+  const tips={
+    net:'Study tip: Memorize the port numbers table — SSH=22, RDP=3389, DNS=53, DHCP=67/68.',
+    hw:'Study tip: Remember RAID levels — 0=no redundancy, 1=mirror, 5=parity+survives 1, 10=mirror+stripe.',
+    trbl:'Study tip: Always follow the 6-step methodology. Document everything!',
+    cloud:'Study tip: IaaS/PaaS/SaaS — think of the pizza analogy.',
+    mobile:'Study tip: 169.254.x.x = APIPA. Swollen battery = immediate replacement.',
+    acr:'Study tip: Make flashcards for acronyms you keep missing.',
+  };
+  document.getElementById('go-tip').textContent='💡 '+tips[B.zone.id];
+  document.getElementById('go-retry-btn').onclick=()=>enterZone(B.zone);
+  showScreen('s-gameover');
+}
+
+function retreatToMap(){
+  clearInterval(B.timerInterval);
+  P.hp=B.pHp;
+  goMap();
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// SAVE / LOAD SYSTEM
+// ════════════════════════════════════════════════════════════
+const SAVE_KEY = 'sysadmin_quest_c1_save';
+
+function saveGame(silent) {
+  const saveData = {
+    P: P,
+    timestamp: Date.now(),
+    version: 1
+  };
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    if (!silent) {
+      const msg = document.getElementById('map-save-msg');
+      if (msg) {
+        msg.textContent = '✓ GAME SAVED — ' + new Date().toLocaleTimeString();
+        clearTimeout(msg._t);
+        msg._t = setTimeout(() => { msg.textContent = ''; }, 3000);
+      }
+    }
+  } catch(e) { console.warn('Save failed:', e); }
+}
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) { return null; }
+}
+
+function deleteSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+function manualSave() {
+  saveGame(false);
+}
+
+function continueGame() {
+  const save = loadSave();
+  if (!save) return;
+  P = save.P;
+  // Ensure all item keys exist (backwards compat)
+  P.items = Object.assign({potion:0,hint:0,shield:0,timer:0,revive:0}, P.items || {});
+  goMap();
+}
+
+function checkForSave() {
+  const save = loadSave();
+  const btn = document.getElementById('continue-btn');
+  const info = document.getElementById('save-info');
+  if (save && btn) {
+    btn.style.display = 'flex';
+    if (info) {
+      const d = new Date(save.timestamp);
+      const zones = save.P.zonesCleared ? save.P.zonesCleared.length : 0;
+      info.style.display = 'block';
+      info.textContent = `💾 LAST SAVE: ${d.toLocaleDateString()} ${d.toLocaleTimeString()} · LV${save.P.level} · ${zones}/6 ZONES`;
+    }
+  } else if (btn) {
+    btn.style.display = 'none';
+    if (info) info.style.display = 'none';
+  }
+}
+
+// Patch battleVictory to auto-save after every battle win
+const _origBattleVictory = battleVictory;
+// (auto-save is woven directly into battleVictory below via override)
+
+showScreen('s-title');
+checkForSave();
+</script>
+</body>
+</html>
